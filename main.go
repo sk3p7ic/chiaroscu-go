@@ -1,9 +1,8 @@
 package main
 
-import "fmt"
-
 import "github.com/sk3p7ic/chiaroscu-go/util"
 
+// Dataset constants
 const (
     DATASET_LOCAL_PATH = "datasets"
     DATASET_URL = "https://storage.googleapis.com/cvdf-datasets/mnist/"
@@ -14,10 +13,14 @@ const (
 )
 
 func main() {
-    fmt.Println("Hello, World!")
+    // List of dataset files to be checked
     var filenames = []string{
         DATASET_TRAIN_IMAGES, DATASET_TRAIN_LABELS,
         DATASET_TEST_IMAGES, DATASET_TEST_LABELS,
     }
-    util.LoadDataset(DATASET_LOCAL_PATH, DATASET_URL, filenames)
+    dataset := util.LoadDataset(DATASET_LOCAL_PATH, DATASET_URL, filenames)
+    defer dataset.F_train_images.Close()
+    defer dataset.F_train_labels.Close()
+    defer dataset.F_test_images.Close()
+    defer dataset.F_test_labels.Close()
 }
