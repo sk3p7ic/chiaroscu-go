@@ -104,7 +104,7 @@ func LoadDataset(dataset_path, fallback_url string,
 }
 
 
-func parse_dataset_file(dataset_image_file, dataset_label_file *os.File) {
+func parse_dataset_fileset(dataset_image_file, dataset_label_file *os.File) {
     gzip_reader_images, gri_err := gzip.NewReader(dataset_image_file)
     gzip_reader_labels, grl_err := gzip.NewReader(dataset_label_file)
     if gri_err != nil || grl_err != nil {
@@ -121,10 +121,10 @@ func parse_dataset_file(dataset_image_file, dataset_label_file *os.File) {
     img_reader.Discard(16)
     // Read magic number and num labels from label file
     lbl_reader.Discard(8)
-    // Read image and label data
+    // Read image data
 }
 
 func ParseDataset(dataset *Dataset) {
-    parse_dataset_file(&dataset.F_train_images, &dataset.F_train_labels)
-    parse_dataset_file(&dataset.F_test_images, &dataset.F_test_labels)
+    parse_dataset_fileset(&dataset.F_train_images, &dataset.F_train_labels)
+    parse_dataset_fileset(&dataset.F_test_images, &dataset.F_test_labels)
 }
