@@ -1,7 +1,9 @@
 package util
 
 import (
+    "compress/gzip"
 	"net/http"
+    "bufio"
 	"fmt"
 	"io"
 	"os"
@@ -103,7 +105,23 @@ func LoadDataset(dataset_path, fallback_url string,
 
 
 func parse_dataset_file(dataset_image_file, dataset_label_file *os.File) {
-    // TODO
+    gzip_reader_images, gri_err := gzip.NewReader(dataset_image_file)
+    gzip_reader_labels, grl_err := gzip.NewReader(dataset_label_file)
+    if gri_err != nil || grl_err != nil {
+        fmt.Println("[E] An error occurred while parsing the dataset.")
+        fmt.Println(gri_err)
+        fmt.Println(grl_err)
+        os.Exit(1)
+    }
+    defer gzip_reader_images.Close()
+    defer gzip_reader_labels.Close()
+    img_reader := bufio.NewReader(gzip_reader_images)
+    lbl_reader := bufio.NewReader(gzip_reader_labels)
+    // Read magic number, num images, num rows, and num columns from image file
+    img_reader.Discard(16)
+    // Read magic number and num labels from label file
+    lbl_reader.Discard(8)
+    // Read image and label data
 }
 
 func ParseDataset(dataset *Dataset) {

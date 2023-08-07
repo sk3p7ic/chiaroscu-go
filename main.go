@@ -19,8 +19,11 @@ func main() {
         DATASET_TEST_IMAGES, DATASET_TEST_LABELS,
     }
     dataset := util.LoadDataset(DATASET_LOCAL_PATH, DATASET_URL, filenames)
-    defer dataset.F_train_images.Close()
-    defer dataset.F_train_labels.Close()
-    defer dataset.F_test_images.Close()
-    defer dataset.F_test_labels.Close()
+    util.ParseDataset(dataset)
+    // Close all files since they are no longer needed
+    dataset.F_train_images.Close()
+    dataset.F_train_labels.Close()
+    dataset.F_test_images.Close()
+    dataset.F_test_labels.Close()
+    // TODO: Implement the actual neural network
 }
