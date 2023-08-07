@@ -1,11 +1,12 @@
 package util
 
 import (
-	"fmt"
-	"github.com/schollz/progressbar/v3"
-	"io"
 	"net/http"
+	"fmt"
+	"io"
 	"os"
+
+	"github.com/schollz/progressbar/v3"
 )
 
 // Number of dataset files to be checked
@@ -20,7 +21,7 @@ type Dataset struct {
 
 // Download a dataset file from a URL to a local path and filename.
 func download_dataset_file(dataset_path, dataset_url, filename string) error {
-	url := fmt.Sprintf("%s/%s", dataset_url, filename)
+	url := fmt.Sprintf("%s%s", dataset_url, filename)
 	// Path to temporary file to be renamed after download
 	var dwnld_file_path = fmt.Sprintf("%s/%s.dwnld", dataset_path, filename)
 	// Create and send GET request
@@ -98,4 +99,14 @@ func LoadDataset(dataset_path, fallback_url string,
     // Return array of dataset files
 	return &Dataset{ dataset_files[0], dataset_files[1],
         dataset_files[2], dataset_files[3] }
+}
+
+
+func parse_dataset_file(dataset_image_file, dataset_label_file *os.File) {
+    // TODO
+}
+
+func ParseDataset(dataset *Dataset) {
+    parse_dataset_file(&dataset.F_train_images, &dataset.F_train_labels)
+    parse_dataset_file(&dataset.F_test_images, &dataset.F_test_labels)
 }
