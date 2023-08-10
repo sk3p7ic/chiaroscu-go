@@ -183,5 +183,19 @@ func ParseDataset(dataset *Dataset) *ParsedDataset {
         &dataset.F_train_labels, dm_Train)
     test := parse_dataset_fileset(&dataset.F_test_images,
         &dataset.F_test_labels, dm_Test)
+    // Print dataset information
+    {
+        fmt.Printf("[I] Parsed Training dataset into\n")
+        r, c := train.Labels.Dims()
+        fmt.Printf("    Label Vector: %d x %d\n", r, c)
+        r, c = train.Images.Dims()
+        fmt.Printf("    Image Matrix: %d x %d\n", r, c)
+
+        fmt.Printf("[I] Parsed Testing dataset into\n")
+        r, c = test.Labels.Dims()
+        fmt.Printf("    Label Vector: %d x %d\n", r, c)
+        r, c = test.Images.Dims()
+        fmt.Printf("    Image Matrix: %d x %d\n", r, c)
+    }
     return &ParsedDataset{ train, test }
 }
