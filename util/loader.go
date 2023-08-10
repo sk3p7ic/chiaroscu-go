@@ -9,16 +9,38 @@ import (
 	"os"
 
 	"github.com/schollz/progressbar/v3"
+    "gonum.org/v1/gonum/mat"
 )
 
 // Number of dataset files to be checked
 const N_DATASET_FILES = 4
 
+// Dataset struct containing the dataset files
 type Dataset struct {
     F_train_images os.File
     F_train_labels os.File
     F_test_images os.File
     F_test_labels os.File
+}
+
+// Dataset mode (train or test)
+type DatasetMode uint8
+// Dataset modes
+const (
+    dm_Train DatasetMode = iota
+    dm_Test
+)
+
+// Parsed dataset fileset containing the labels and images as matrices
+type ParsedFileset struct {
+    Labels *mat.Dense
+    Images *mat.Dense
+}
+
+// Parsed dataset containing the training and testing filesets as matrices
+type ParsedDataset struct {
+    Train ParsedFileset
+    Test ParsedFileset
 }
 
 // Download a dataset file from a URL to a local path and filename.
@@ -103,8 +125,14 @@ func LoadDataset(dataset_path, fallback_url string,
         dataset_files[2], dataset_files[3] }
 }
 
-
-func parse_dataset_fileset(dataset_image_file, dataset_label_file *os.File) {
+// Parse a dataset fileset into a ParsedFileset struct containing the labels
+// and images as matrices.
+func parse_dataset_fileset(dataset_image_file, dataset_label_file *os.File,
+    mode DatasetMode) ParsedFileset {
+    mode_str := func() string {
+        if mode == dm_Train { return "training" } else { return "testing" }
+    }()
+    fmt.Printf("[I] Parsing %s dataset...\n", mode_str)
     gzip_reader_images, gri_err := gzip.NewReader(dataset_image_file)
     gzip_reader_labels, grl_err := gzip.NewReader(dataset_label_file)
     if gri_err != nil || grl_err != nil {
@@ -121,10 +149,39 @@ func parse_dataset_fileset(dataset_image_file, dataset_label_file *os.File) {
     img_reader.Discard(16)
     // Read magic number and num labels from label file
     lbl_reader.Discard(8)
+    // Get the number of images to be read
+    n_images := func() uint32 {
+        if mode == dm_Train { return 60000 } else { return 10000 }
+    }()
+    fmt.Printf("    Reading %d images...\n", n_images)
+    var images = make([]float64, 784 * n_images)
+    var labels = make([]float64, n_images)
     // Read image data
+    for i := uint32(0); i < n_images; i++ {
+        // Read image label
+        label, _ := lbl_reader.ReadByte()
+        labels[i] = float64(label)
+        // Read image pixels
+        for j := uint32(0); j < 784; j++ {
+            pixel, _ := img_reader.ReadByte()
+            images[i * 784 + j] = float64(pixel)
+        }
+    }
+    fmt.Printf("    Finished reading %d images.\n", n_images)
+    fmt.Println("    Assigning dataset into Dense matrices...")
+    // Assign labels to Dense matrix
+    labels_mat := mat.NewDense(int(n_images), 1, labels)
+    images_mat := mat.NewDense(int(n_images), 784, images)
+    fmt.Println("    Finished assigning dataset into Dense matrices.")
+    return ParsedFileset{ labels_mat, images_mat }
 }
 
-func ParseDataset(dataset *Dataset) {
-    parse_dataset_fileset(&dataset.F_train_images, &dataset.F_train_labels)
-    parse_dataset_fileset(&dataset.F_test_images, &dataset.F_test_labels)
+// Parse a Dataset struct into a ParsedDataset struct containing the training
+// and testing filesets as ParsedFileset structs, respectively.
+func ParseDataset(dataset *Dataset) *ParsedDataset {
+    train := parse_dataset_fileset(&dataset.F_train_images,
+        &dataset.F_train_labels, dm_Train)
+    test := parse_dataset_fileset(&dataset.F_test_images,
+        &dataset.F_test_labels, dm_Test)
+    return &ParsedDataset{ train, test }
 }
