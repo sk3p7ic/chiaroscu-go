@@ -36,3 +36,29 @@ func Softmax(m *mat.Dense) *mat.Dense {
     ret.Scale(1/sum, ret)
     return ret
 }
+
+// Performs a one-hot encoding of the given float64 value with the given number
+// of classes. Returns a column vector with n_classes rows and a 1 in the row
+// corresponding to the given value and 0s in all other rows.
+func OneHotEncode(y float64, n_classes uint) *mat.Dense {
+    ret := mat.NewDense(int(n_classes), 1, nil)
+    // Ensure that all values are 0.
+    for i := 0; i < int(n_classes); i++ {
+        ret.Set(i, 0, 0)
+    }
+    // Set the value at the given index to 1.
+    ret.Set(int(y), 0, 1)
+    return ret
+}
+
+func OneHotEncodeOnVector(y *mat.Dense, n_classes uint) *mat.Dense {
+    r, _ := y.Dims()
+    ret := mat.NewDense(int(n_classes), r, nil)
+    for i := 0; i < r; i++ {
+        ohe := OneHotEncode(y.At(i, 0), n_classes)
+        for j := 0; j < int(n_classes); j++ {
+            ret.Set(j, i, ohe.At(j, 0))
+        }
+    }
+    return ret
+}

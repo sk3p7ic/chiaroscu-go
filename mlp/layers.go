@@ -7,14 +7,17 @@ import (
 
 // A size for a layer in the neural network.
 type LSize struct {
-    Width uint
-    Height uint
+    InputWidth uint
+    InputHeight uint
+    OutputWidth uint
+    OutputHeight uint
 }
 
 // A layer in the neural network.
 type Layer struct {
     Weights *mat.Dense
     Biases *mat.Dense
+    LastOutput *mat.Dense
     Activation ActivationFunction
 }
 
@@ -34,10 +37,11 @@ func initLayerMatrix(r, c int, zfill bool) *mat.Dense {
 }
 
 // Initialize a new layer with random weights and a vector of zeros for biases.
-func NewLayer(w, h int, activation ActivationFunction) *Layer {
+func NewLayer(w, h, out_w, out_h int, activation ActivationFunction) *Layer {
     return &Layer{
         Weights: initLayerMatrix(w, h, false),
         Biases: initLayerMatrix(1, h, true),
+        LastOutput: initLayerMatrix(out_w, out_h, true),
         Activation: activation,
     }
 }
@@ -47,5 +51,7 @@ func (l *Layer) Forward(x *mat.Dense) *mat.Dense {
     z := mat.NewDense(0, 0, nil)
     z.Mul(x, l.Weights)
     z.Add(z, l.Biases)
-    return l.Activation(z)
+    logits := l.Activation(z)
+    l.LastOutput = logits
+    return logits
 }
